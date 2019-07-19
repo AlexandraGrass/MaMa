@@ -1,3 +1,5 @@
+from parser import *
+
 if __name__ == '__main__':
 
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -20,3 +22,6 @@ if __name__ == '__main__':
     print(args.output)
 
     # do actual work
+    print(parse_tree("let a = 17 in let f = fun b -> a + b in f 42"))
+    print()
+    print(parse_tree("if a then 3 else 4"))
