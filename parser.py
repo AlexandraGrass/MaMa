@@ -4,8 +4,10 @@ import numpy as np
 import re
 
 def mk_let(x, depth, dictio):
-    x1 = Variable("var", x['x1'], depth+1)
-    dictio[x['x1']] = "var"
+    tag = "fvar" if x['e1'].split(' ', 1)[0] == "fun" else "var"
+
+    x1 = Variable(tag, x['x1'], depth+1)
+    dictio[x['x1']] = tag
 
     e1 = parse_tree(x['e1'], depth+1, dictio)
     e0 = parse_tree(x['e0'], depth+1, dictio)
@@ -24,6 +26,37 @@ def mk_fun(x, depth, dictio):
     children.append(e)
 
     return Other("fun", children, depth)
+
+def split_expr(exprs):
+    print(exprs)
+
+    x = parse("({e1}) {e2}", exprs)
+    if(x != None):
+        tmp = [x['e1']]
+        tmp.extend(split_expr(x['e2']))
+        return tmp
+
+    x = parse("({e})", exprs)
+    if(x != None):
+        return [x['e']]
+
+    x = exprs.split(' ', 1)
+
+    if len(x) == 1:
+        return [x[0]]
+
+    else:
+        tmp = [x[0]]
+        tmp.extend(split_expr(x[1]))
+        return tmp
+
+def mk_app(x, depth, dictio):
+    children = [Variable("fvar", x[0], depth+1)]
+
+    for expr in split_expr(x[1]):
+        children.append(parse_tree(expr, depth+1, dictio))
+
+    return Other("app", children, depth)
 
 def mk_if(x, depth, dictio):
     e0 = parse_tree(x['e0'], depth+1, dictio)
@@ -60,6 +93,9 @@ def mk_usub(x, depth, dictio):
     e = parse_tree(x['e'], depth+1, dictio)
     return Other("usub", [e], depth)
 
+def is_known(expr, dictio):
+    return expr in dictio
+
 def is_var(expr, dictio):
     try: 
         return dictio[expr] == "var"
@@ -72,6 +108,12 @@ def is_arg(expr, dictio):
     except KeyError:
         return False
 
+def is_fun(expr, dictio):
+    try: 
+        return dictio[expr] == "fvar"
+    except KeyError:
+        return False
+
 def is_int(expr):
     try: 
         int(expr)
@@ -80,6 +122,10 @@ def is_int(expr):
         return False
 
 def parse_tree(expr, depth=0, dictio={}):
+
+    # clear the dictionary
+    if(depth==0):
+        dictio.clear()
 
     # remove unnecessary whitespace
     expr = re.sub(' +', ' ',expr).strip()
@@ -98,7 +144,10 @@ def parse_tree(expr, depth=0, dictio={}):
         return mk_fun(x, depth, dictio)
     
     # e' e0 ... ek−1
-    # TODO
+    x = expr.split(' ', 1)
+    if(is_fun(x[0], dictio)):
+        print(x[0])
+        return mk_app(x, depth, dictio)
 
     # if e0 then e1 else e2
     x = parse("if {e0} then {e1} else {e2}", expr)

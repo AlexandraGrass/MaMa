@@ -1,9 +1,10 @@
 General
-    Rho for vars & funs, several statements
+    > Rho for vars & funs
+    several statements
 
 b 
     > basic (BasicValue)
-    check if int
+    > check if int
 
 x
     > var (Variable)
@@ -12,7 +13,7 @@ x
 
 (op1 e)
     > uadd, usub, brkt (Other)
-    brackets don't need own nodes
+    > brackets don't need own nodes
 
 ( e1 op2 e2 )
     > add, sub, mul, div
@@ -23,14 +24,17 @@ x
 
 ( e' e0 ... ek−1 )
     > app
-    fun has to be known
+    > fun has to be known
+    > split e0 to ek-1 correctly?
+    convert "39 + 3" to "39+3"
 
 ( fun x0 ... xk−1 -> e )
     > fun
-    differ between args and vars
+    > differ between args and vars
 
 ( let x1 = e1 in e0 )
     > let
+    > differ between var and fun?
 
 ( let rec x1 = e1 and ... and xn = en in e0 )
-    > rec
+    rec

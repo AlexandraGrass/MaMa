@@ -22,11 +22,11 @@ if __name__ == '__main__':
     print(args.output)
 
     # do actual work
-    print(parse_tree("let a = 17 in let f = fun b -> a + b in f 42"))
+    print(parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)"))
     print()
     print(parse_tree("if a then 3 else 4"))
     print()
-    print(parse_tree("+     x3    "))
+    print(parse_tree("let x3 = 4 in     +     x3    "))
     print()
     print(parse_tree("((34))"))
     print()
