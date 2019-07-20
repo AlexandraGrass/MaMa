@@ -31,3 +31,5 @@ if __name__ == '__main__':
     print(parse_tree("((34))"))
     print()
     print(parse_tree("3 / 4"))
+    print()
+    print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1"))

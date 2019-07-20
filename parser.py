@@ -3,16 +3,42 @@ from parse import *
 import numpy as np
 import re
 
+def mk_rec(x, depth, dictio):
+    defs = x['defs'].split('and')
+
+    children = []
+    for defi in defs:
+        y = parse("{x1} = fun {e1}", defi)
+        if(y == None):
+            raise Exception('"{}" is not a valid assignment in let rec.'.format(defi))
+
+        dictio[y['x1']] = "fvar"
+
+    for defi in defs:
+        y = parse("{x1} = {e1}", defi)
+
+        x1 = Variable("fvar", y['x1'], depth+2)
+        e1 = parse_tree(y['e1'], depth+2, dictio)
+
+        children.append(Other("asgn", [x1, e1], depth+1))
+
+    e0 = parse_tree(x['e0'], depth+1, dictio)
+    children.append(e0)
+
+    return Other("rec", children, depth)
+
 def mk_let(x, depth, dictio):
     tag = "fvar" if x['e1'].split(' ', 1)[0] == "fun" else "var"
 
-    x1 = Variable(tag, x['x1'], depth+1)
+    x1 = Variable(tag, x['x1'], depth+2)
     dictio[x['x1']] = tag
 
-    e1 = parse_tree(x['e1'], depth+1, dictio)
+    e1 = parse_tree(x['e1'], depth+2, dictio)
+
+    asgn = Other("asgn", [x1, e1], depth+1)
     e0 = parse_tree(x['e0'], depth+1, dictio)
 
-    return Other("let", [x1, e1, e0], depth)
+    return Other("let", [asgn, e0], depth)
 
 def mk_fun(x, depth, dictio):
     args = x['args'].split()
@@ -28,8 +54,6 @@ def mk_fun(x, depth, dictio):
     return Other("fun", children, depth)
 
 def split_expr(exprs):
-    print(exprs)
-
     x = parse("({e1}) {e2}", exprs)
     if(x != None):
         tmp = [x['e1']]
@@ -131,7 +155,9 @@ def parse_tree(expr, depth=0, dictio={}):
     expr = re.sub(' +', ' ',expr).strip()
 
     # let rec x1 = e1 and ... and xn = en in e0
-    # TODO
+    x = parse("let rec {defs} in {e0}", expr)
+    if(x != None):
+        return mk_rec(x, depth, dictio)
 
     # let x1 = e1 in e0
     x = parse("let {x1} = {e1} in {e0}", expr)
@@ -146,7 +172,6 @@ def parse_tree(expr, depth=0, dictio={}):
     # e' e0 ... ek−1
     x = expr.split(' ', 1)
     if(is_fun(x[0], dictio)):
-        print(x[0])
         return mk_app(x, depth, dictio)
 
     # if e0 then e1 else e2

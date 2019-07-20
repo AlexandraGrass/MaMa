@@ -1,6 +1,7 @@
 General
     > Rho for vars & funs
     several statements
+    args really just in dictio in function body?
 
 b 
     > basic (BasicValue)
@@ -33,8 +34,8 @@ x
     > differ between args and vars
 
 ( let x1 = e1 in e0 )
-    > let
+    > let, asgn
     > differ between var and fun?
 
 ( let rec x1 = e1 and ... and xn = en in e0 )
-    rec
+    > rec, asgn
