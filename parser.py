@@ -6,23 +6,25 @@ import re
 def mk_rec(x, depth, dictio):
     defs = x['defs'].split('and')
 
+    new_dict = dictio.copy()
+
     children = []
     for defi in defs:
         y = parse("{x1} = fun {e1}", defi)
         if(y == None):
             raise Exception('"{}" is not a valid assignment in let rec.'.format(defi))
 
-        dictio[y['x1']] = "fvar"
+        new_dict[y['x1']] = "fvar"
 
     for defi in defs:
         y = parse("{x1} = {e1}", defi)
 
         x1 = Variable("fvar", y['x1'], depth+2)
-        e1 = parse_tree(y['e1'], depth+2, dictio)
+        e1 = parse_tree(y['e1'], depth+2, new_dict)
 
         children.append(Other("asgn", [x1, e1], depth+1))
 
-    e0 = parse_tree(x['e0'], depth+1, dictio)
+    e0 = parse_tree(x['e0'], depth+1, new_dict)
     children.append(e0)
 
     return Other("rec", children, depth)
@@ -30,25 +32,29 @@ def mk_rec(x, depth, dictio):
 def mk_let(x, depth, dictio):
     tag = "fvar" if x['e1'].split(' ', 1)[0] == "fun" else "var"
 
-    x1 = Variable(tag, x['x1'], depth+2)
-    dictio[x['x1']] = tag
+    new_dict = dictio.copy()
 
-    e1 = parse_tree(x['e1'], depth+2, dictio)
+    x1 = Variable(tag, x['x1'], depth+2)
+    new_dict[x['x1']] = tag
+
+    e1 = parse_tree(x['e1'], depth+2, new_dict)
 
     asgn = Other("asgn", [x1, e1], depth+1)
-    e0 = parse_tree(x['e0'], depth+1, dictio)
+    e0 = parse_tree(x['e0'], depth+1, new_dict)
 
     return Other("let", [asgn, e0], depth)
 
 def mk_fun(x, depth, dictio):
     args = x['args'].split()
+
+    new_dict = dictio.copy()
     
     children = []
     for arg in args:
         children.append(Variable("arg", arg, depth+1))
-        dictio[arg] = "arg"
+        new_dict[arg] = "arg"
 
-    e = parse_tree(x['e'], depth+1, dictio)
+    e = parse_tree(x['e'], depth+1, new_dict)
     children.append(e)
 
     return Other("fun", children, depth)
@@ -146,10 +152,6 @@ def is_int(expr):
         return False
 
 def parse_tree(expr, depth=0, dictio={}):
-
-    # clear the dictionary
-    if(depth==0):
-        dictio.clear()
 
     # remove unnecessary whitespace
     expr = re.sub(' +', ' ',expr).strip()
