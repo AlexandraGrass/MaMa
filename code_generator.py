@@ -11,7 +11,7 @@ def parse_syntaxTree(tree):
         code_gen_for_if(tree.children)
     elif(tree.tag == "let"):
         code_gen_for_let(tree.children)
-        print("slide " + str(let_count))
+        print(str(sd) + " slide " + str(let_count))
 
 #code_generation for let
 def code_gen_for_let(children):
@@ -22,8 +22,6 @@ def code_gen_for_let(children):
 
     if(children[1].tag == "let"):
         code_gen_for_let(children[1].children)
-    elif(children[1].tag == "app"):
-        print(children[1].children)
     elif(children[1].tag == "add"):
         code_gen_for_op(children[1].children, "add")
     elif(children[1].tag == "mul"):
@@ -32,13 +30,15 @@ def code_gen_for_let(children):
         code_gen_for_op(children[1].children, "sub")
     elif(children[1].tag == "div"):
         code_gen_for_op(children[1].children, "div")
+    elif(children[1].tag == "app"):
+        code_gen_for_application(children[1].children)
 
 #code_gen for assignment  
 def code_gen_for_asgn(children):
     global rho, localVarCount
     if(children[0].tag == "var"):
         #print("Variable name: " + children[0].var + "added at" + str(localVarCount))
-        rho[children[0].var] = localVarCount
+        rho[children[0].var] = ("L",localVarCount)
         localVarCount += 1
         if(children[1].tag == "basic"):
             code_gen_for_basic_val(children[1].value)
@@ -46,12 +46,13 @@ def code_gen_for_asgn(children):
             code_gen_for_op(children[1].children, "mul")
     
     if(children[0].tag == "fvar"):
-        print(children[0].var)
+        rho[children[0].var] = ("L",localVarCount)
+        localVarCount+=1
         if(children[1].tag == "basic"):
             print(children[1].value)
         elif(children[1].tag == "fun"):
-            print(children[1].children)
-
+            code_gen_for_fun(children[1].children)
+            
 #code_generation for basic
 def code_gen_for_basic_val(value):
     global sd
@@ -60,13 +61,18 @@ def code_gen_for_basic_val(value):
     print(str(sd) +  " mkbasic")
 
 #code_generation for var
-def code_gen_for_var(var_name):
+def code_gen_for_var(var_name, getbasic = True):
     global rho, sd
-    value = rho[var_name]
-    value = sd - value
-    print(str(sd) + " pushloc " + str(value))
+    value = rho[var_name][1]
+    varType = rho[var_name][0]
+    if varType == "L":
+        value = sd - value
+        print(str(sd) + " pushloc " + str(value))
+    elif varType == "G":
+        print(str(sd) + " pushglob " + str(value))
     sd+=1
-    print(str(sd) + " getbasic")
+    if (getbasic):
+        print(str(sd) + " getbasic")
 
 #code_genation for binary operators
 def code_gen_for_op(children, type):
@@ -74,12 +80,12 @@ def code_gen_for_op(children, type):
     if(children[0].tag == "var"):
         code_gen_for_var(children[0].var)
     elif(children[0].tag == "basic"):
-        print(children[0].value)
+        code_gen_for_basic_val(children[0].value)
     
-    if (children[1].tag) == "var":
+    if (children[1].tag == "var" or  children[1].tag == "arg"):
         code_gen_for_var(children[1].var)
     elif(children[1].tag == "basic"):
-        print(children[1].value)
+        code_gen_for_basic_val(children[1].value)
 
     print(str(sd) + " " + type)
     sd-=1
@@ -88,22 +94,63 @@ def code_gen_for_op(children, type):
 #code_generation for if
 def code_gen_for_if(children):
     global jumpId
-    if_condition(children[0])
+    if(children[0].tag == "basic"):
+        code_gen_for_basic_val(children[0].value)
+
     print("jumpz " + chr(jumpId))
     jumpId+= 1
-    if_then_expression(children[1])
+    
+    if(children[1].tag == "basic"):
+        code_gen_for_basic_val(children[1].value)
+    
     print("jump " + chr(jumpId))
     jumpId+= 1
-    if_else_expression(children[2])
-
-def if_condition(exp):
-    if(exp.tag == "basic"):
-        print("loadc " + str(exp.value))
     
-def if_then_expression(exp):
-    if(exp.tag == "basic"):
-        print("loadc " + str(exp.value))
+    if(children[2].tag == "basic"):
+        code_gen_for_basic_val(children[2].value)
 
-def if_else_expression(exp):
-    if(exp.tag == "basic"):
-        print("loadc " + str(exp.value))
+#code_generation for function
+def code_gen_for_fun(children):
+    global sd, rho
+    funArgVars = []
+    for funArg in children:
+        if (funArg.tag == "arg"):
+            funArgVars.append(funArg.var)
+        else:
+            varsUsed = getVarsUsed() 
+            freeVars = list(set(varsUsed) - set(funArgVars))
+            #generate code for free-vars
+            for var in freeVars:
+                code_gen_for_var(var, False)
+            print(str(sd) + " mkvec " + str(len(freeVars)))
+            print(str(sd) + " mkfunval A")
+            print(str(sd) + " jump B")
+            oldSD = sd #new stack distance
+            sd = 0
+            oldRHO = rho
+            rho = {}
+            formalParamCount = 0
+            globalFunVarCount = 0
+            for var in funArgVars:
+                rho[var] = ("L",formalParamCount)
+                formalParamCount-=1
+            for var in freeVars:
+                rho[var] = ("G",globalFunVarCount)
+                globalFunVarCount+=1
+            print("A:")
+            print (str(sd) + " targ " + str(len(funArgVars)))
+            if (funArg.tag == "add"):
+                code_gen_for_op(funArg.children, "add")
+            
+            print (str(sd) + " return " + str(len(funArgVars)))
+            sd=oldSD
+            rho = oldRHO
+            print("B:")
+
+#Return variables used inside a function inorder to determine the free variables
+def getVarsUsed(): #TODO
+    return ["a", "b"]
+
+#code generation for function application
+def code_gen_for_application(children):
+    print(children)
