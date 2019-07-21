@@ -153,4 +153,17 @@ def getVarsUsed(): #TODO
 
 #code generation for function application
 def code_gen_for_application(children):
-    print(children)
+    global sd
+    preAppSD = sd
+    print(str(sd) + " mark C")
+    sd=sd+3
+    for i in range((len(children)-1),-1, -1):
+        if(children[i].tag == "basic"):
+            code_gen_for_basic_val(children[i].value)
+        elif(children[i].tag == "add"):
+            code_gen_for_op(children[i].children,"add")
+        elif(children[i].tag == "fvar"):
+            code_gen_for_var(children[i].var,False)
+    print(str(sd) + " apply")
+    print("C:")
+    sd = preAppSD + 1

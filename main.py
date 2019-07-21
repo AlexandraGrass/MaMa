@@ -62,5 +62,7 @@ if __name__ == '__main__':
     #parse_syntaxTree(result)
     #result = parse_tree("if 1 then 3 else 4")
     #parse_syntaxTree(result)
-    result = parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)")
+    #result = parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)")
+    #parse_syntaxTree(result)
+    result = parse_tree("let a = 17 in let f = fun b -> a + b in f 42") # 140
     parse_syntaxTree(result)
