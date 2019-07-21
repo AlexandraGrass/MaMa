@@ -1,4 +1,5 @@
 from parser import *
+from code_generator import *
 
 if __name__ == '__main__':
 
@@ -18,11 +19,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # usage: main.py [-h] [-i INPUT] [-o OUTPUT]
-    print(args.input)
-    print(args.output)
+    #print(args.input)
+    #print(args.output)
 
     # own examples
-    print(parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)"))
+    #result = parse_tree("if 1 then 3 else 4")
+    #parse_syntaxTree(result)
+    #result = parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)")
+    #parse_syntaxTree(result)
+    '''
     print()
     print(parse_tree("if 1 then 3 else 4"))
     print()
@@ -44,8 +49,10 @@ if __name__ == '__main__':
     # TODO: for let f, first "in" is chosen (a in b)
     # print(parse_tree("let c = 5 in let f = fun a -> let b = a * a in b + c in f c")) # 114
     # print()
-
-    print(parse_tree("let a = 19 in let b = a * a in a + b")) # 131
+    '''
+    result = parse_tree("let a = 19 in let b = a * a in a + b") # 131
+    parse_syntaxTree(result)
+    '''
     print()
 
     print(parse_tree("let a = 17 in let f = fun b -> a + b in f 42")) # 140
@@ -53,3 +60,4 @@ if __name__ == '__main__':
 
     print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1")) # 159
     print()
+    '''
