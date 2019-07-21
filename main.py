@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # do actual work
     print(parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)"))
     print()
-    print(parse_tree("if a then 3 else 4"))
+    print(parse_tree("if 1 then 3 else 4"))
     print()
     print(parse_tree("let x3 = 4 in     +     x3    "))
     print()
@@ -34,4 +34,4 @@ if __name__ == '__main__':
     print()
     print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1"))
     print()
-    print(parse_tree("let y_x = 4 in test"))
+    print(parse_tree("let y_x = 4 in y_x"))

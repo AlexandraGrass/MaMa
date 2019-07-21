@@ -20,10 +20,11 @@ x
 
 ( e1 op2 e2 )
     > add, sub, mul, div
+    > gt, ge, lt, le, eq
 
 ( if e0 then e1 else e2 )
     > if
-    conditions
+    > conditions
 
 ( e' e0 ... ek−1 )
     > app

@@ -95,52 +95,21 @@ def mk_if(x, depth, dictio):
 
     return Other("if", [e0, e1, e2], depth)
 
-def mk_add(x, depth, dictio):
+def mk_op2(x, depth, dictio, tag):
     e1 = parse_tree(x['e1'], depth+1, dictio)
     e2 = parse_tree(x['e2'], depth+1, dictio)
-    return Other("add", [e1, e2], depth)
+    return Other(tag, [e1, e2], depth)
 
-def mk_sub(x, depth, dictio):
-    e1 = parse_tree(x['e1'], depth+1, dictio)
-    e2 = parse_tree(x['e2'], depth+1, dictio)
-    return Other("sub", [e1, e2], depth)
-
-def mk_mul(x, depth, dictio):
-    e1 = parse_tree(x['e1'], depth+1, dictio)
-    e2 = parse_tree(x['e2'], depth+1, dictio)
-    return Other("mul", [e1, e2], depth)
-
-def mk_div(x, depth, dictio):
-    e1 = parse_tree(x['e1'], depth+1, dictio)
-    e2 = parse_tree(x['e2'], depth+1, dictio)
-    return Other("div", [e1, e2], depth)
-
-def mk_uadd(x, depth, dictio):
+def mk_op1(x, depth, dictio, tag):
     e = parse_tree(x['e'], depth+1, dictio)
-    return Other("uadd", [e], depth)
+    return Other(tag, [e], depth)
 
-def mk_usub(x, depth, dictio):
-    e = parse_tree(x['e'], depth+1, dictio)
-    return Other("usub", [e], depth)
+def is_known(expr, dictio, tag=""):
+    if tag == "":
+        return expr in dictio
 
-def is_known(expr, dictio):
-    return expr in dictio
-
-def is_var(expr, dictio):
     try: 
-        return dictio[expr] == "var"
-    except KeyError:
-        return False
-
-def is_arg(expr, dictio):
-    try: 
-        return dictio[expr] == "arg"
-    except KeyError:
-        return False
-
-def is_fun(expr, dictio):
-    try: 
-        return dictio[expr] == "fvar"
+        return dictio[expr] == tag
     except KeyError:
         return False
 
@@ -173,7 +142,7 @@ def parse_tree(expr, depth=0, dictio={}):
     
     # e' e0 ... ek−1
     x = expr.split(' ', 1)
-    if(is_fun(x[0], dictio)):
+    if(is_known(x[0], dictio, "fvar")):
         return mk_app(x, depth, dictio)
 
     # if e0 then e1 else e2
@@ -181,35 +150,60 @@ def parse_tree(expr, depth=0, dictio={}):
     if(x != None):
         return mk_if(x, depth, dictio)
 
+    # e1 >= e2
+    x = parse("{e1}>={e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "ge")
+
+    # e1 > e2
+    x = parse("{e1}>{e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "gt")
+
+    # e1 <= e2
+    x = parse("{e1}<={e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "le")
+
+    # e1 < e2
+    x = parse("{e1}<{e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "lt")
+
+    # e1 == e2
+    x = parse("{e1}=={e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "eq")
+
     # e1 + e2
     x = parse("{e1}+{e2}", expr)
     if(x != None):
-        return mk_add(x, depth, dictio)
+        return mk_op2(x, depth, dictio, "add")
 
     # e1 - e2
     x = parse("{e1}-{e2}", expr)
     if(x != None):
-        return mk_sub(x, depth, dictio)
+        return mk_op2(x, depth, dictio, "sub")
 
     # e1 * e2
     x = parse("{e1}*{e2}", expr)
     if(x != None):
-        return mk_mul(x, depth, dictio)
+        return mk_op2(x, depth, dictio, "mul")
 
     # e1 / e2
     x = parse("{e1}/{e2}", expr)
     if(x != None):
-        return mk_div(x, depth, dictio)
+        return mk_op2(x, depth, dictio, "div")
 
     # +e
     x = parse("+{e}", expr)
     if(x != None):
-        return mk_uadd(x, depth, dictio)
+        return mk_op1(x, depth, dictio, "uadd")
 
     # -e
     x = parse("-{e}", expr)
     if(x != None):
-        return mk_usub(x, depth, dictio)
+        return mk_op1(x, depth, dictio, "usub")
 
     # (e)
     x = parse("({e})", expr)
@@ -217,11 +211,11 @@ def parse_tree(expr, depth=0, dictio={}):
         return parse_tree(x['e'], depth, dictio)
 
     # variable
-    if(is_var(expr, dictio)):
+    if(is_known(expr, dictio, "var")):
         return Variable("var", expr, depth)
 
     # argument
-    if(is_arg(expr, dictio)):
+    if(is_known(expr, dictio, "arg")):
         return Variable("arg", expr, depth)
 
     # basic value
@@ -229,5 +223,5 @@ def parse_tree(expr, depth=0, dictio={}):
         return BasicValue("basic", int(expr), depth)
 
     # default case
-    # raise Exception('"{}" is not a valid expression.'.format(expr))
-    return Variable("dummy", expr, depth)
+    raise Exception('"{}" is not a valid expression.'.format(expr))
+    # return Variable("dummy", expr, depth)
