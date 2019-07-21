@@ -21,7 +21,7 @@ if __name__ == '__main__':
     print(args.input)
     print(args.output)
 
-    # do actual work
+    # own examples
     print(parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)"))
     print()
     print(parse_tree("if 1 then 3 else 4"))
@@ -35,3 +35,21 @@ if __name__ == '__main__':
     print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1"))
     print()
     print(parse_tree("let y_x = 4 in y_x"))
+    print()
+
+    # from lecture slides
+    print(parse_tree("let rec fac = fun x -> if x <= 1 then 1 else x * fac (x-1) in fac 7")) # 102
+    print()
+
+    # TODO: for let f, first "in" is chosen (a in b)
+    # print(parse_tree("let c = 5 in let f = fun a -> let b = a * a in b + c in f c")) # 114
+    # print()
+
+    print(parse_tree("let a = 19 in let b = a * a in a + b")) # 131
+    print()
+
+    print(parse_tree("let a = 17 in let f = fun b -> a + b in f 42")) # 140
+    print()
+
+    print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1")) # 159
+    print()

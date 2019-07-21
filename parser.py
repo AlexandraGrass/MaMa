@@ -125,6 +125,11 @@ def parse_tree(expr, depth=0, dictio={}):
     # remove unnecessary whitespace
     expr = re.sub(' +', ' ',expr).strip()
 
+    # (e)
+    x = parse("({e})", expr)
+    if(x != None):
+        return parse_tree(x['e'], depth, dictio)
+
     # let rec x1 = e1 and ... and xn = en in e0
     x = parse("let rec {defs} in {e0}", expr)
     if(x != None):
@@ -175,16 +180,6 @@ def parse_tree(expr, depth=0, dictio={}):
     if(x != None):
         return mk_op2(x, depth, dictio, "eq")
 
-    # e1 + e2
-    x = parse("{e1}+{e2}", expr)
-    if(x != None):
-        return mk_op2(x, depth, dictio, "add")
-
-    # e1 - e2
-    x = parse("{e1}-{e2}", expr)
-    if(x != None):
-        return mk_op2(x, depth, dictio, "sub")
-
     # e1 * e2
     x = parse("{e1}*{e2}", expr)
     if(x != None):
@@ -195,6 +190,16 @@ def parse_tree(expr, depth=0, dictio={}):
     if(x != None):
         return mk_op2(x, depth, dictio, "div")
 
+    # e1 + e2
+    x = parse("{e1}+{e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "add")
+
+    # e1 - e2
+    x = parse("{e1}-{e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "sub")
+
     # +e
     x = parse("+{e}", expr)
     if(x != None):
@@ -204,11 +209,6 @@ def parse_tree(expr, depth=0, dictio={}):
     x = parse("-{e}", expr)
     if(x != None):
         return mk_op1(x, depth, dictio, "usub")
-
-    # (e)
-    x = parse("({e})", expr)
-    if(x != None):
-        return parse_tree(x['e'], depth, dictio)
 
     # variable
     if(is_known(expr, dictio, "var")):

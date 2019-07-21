@@ -3,7 +3,7 @@ General
     > Rho for vars & funs
     several statements
     > args really just in dictio in function body?
-    parser doing proper separation?
+    parser doing proper separation? -> nope
 
 b 
     > basic (BasicValue)
