@@ -17,9 +17,27 @@ class BasicValue(Node):
         super_str = super(BasicValue, self).__str__()
         return super_str + ": " + str(self.value)
 
+def check_var(var):
+    for char in var:
+        if ord(char) < 48 or ord(char) > 57 and ord(char) < 65 or ord(char) > 91 and ord(char) < 97 or ord(char) > 122:
+            if not char == '_':
+                raise Exception('"{}" is not a valid variable name.'.format(var))
+
+    try:
+        int(var[0])
+        raise Exception('"{}" is not a valid variable name.'.format(var))
+    except ValueError:
+        pass
+
+    if var[0] == '_' or var[-1] == '_':
+        raise Exception('"{}" is not a valid variable name.'.format(var))
+
 class Variable(Node):
     
     def __init__(self, tag, var, depth=0):
+        if(tag != "dummy"):
+            check_var(var)
+
         self.var = var
         super(Variable, self).__init__(tag, depth)
 

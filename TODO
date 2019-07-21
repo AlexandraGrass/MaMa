@@ -1,7 +1,9 @@
 General
+    Read from file!
     > Rho for vars & funs
     several statements
-    args really just in dictio in function body?
+    > args really just in dictio in function body?
+    parser doing proper separation?
 
 b 
     > basic (BasicValue)
@@ -9,7 +11,7 @@ b
 
 x
     > var (Variable)
-    one word, further specifications? -> check in constructor
+    > one word, further specifications? -> check in constructor
     global, local?
 
 (op1 e)
