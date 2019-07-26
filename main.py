@@ -58,7 +58,7 @@ if __name__ == '__main__':
     '''
 
     ##examples handled by code generation
-    #result = parse_tree("let a = 19 in let b = 17 * a in a + b") # 131
+    #result = parse_tree("let a = 19 in let b = a * a in a + b") # 131
     #parse_syntaxTree(result)
     #result = parse_tree("if 1 then 3 else 4")
     #parse_syntaxTree(result)
@@ -70,6 +70,7 @@ if __name__ == '__main__':
     #parse_syntaxTree(result)
     #result = parse_tree("let x3 = 4 in     +     x3    ")
     #parse_syntaxTree(result)
+    '''Needs Work:'''
     #result = parse_tree("let f = fun x y -> let a = 5 in let b = x + 2*y in b + a*x in f 0 1")
     #parse_syntaxTree(result)
     #result = parse_tree("if y > x then x else 7 + y * x")
