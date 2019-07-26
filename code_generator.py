@@ -21,31 +21,45 @@ def parse_syntaxTree(tree): #Assume the program starts with only let, if and let
     elif(tree.tag == "rec"):
         code_gen_for_rec(tree.children)
 
+###code_generation generic call
+def code_generation(child, basic = True, var=True):
+    if(child.tag == "asgn"):
+        code_gen_for_asgn(child.children)
+
+    if(child.tag == "let"):
+        code_gen_for_let(child.children)
+    
+    if(child.tag in opType):
+        code_gen_for_op(child.children, child.tag)
+
+    if(child.tag == "app"):
+        code_gen_for_application(child.children)
+
+    if(child.tag == "uadd" or child.tag == "usub"):
+        code_gen_for_uop(child.children, child.tag)
+
+    if(child.tag == "var" or child.tag == "arg" or child.tag == "fvar"):
+        code_gen_for_var(child.var, var)
+    
+    if(child.tag == "basic"):
+        code_gen_for_basic_val(child.value, basic)
+   
+    if(child.tag == "if"): 
+        code_gen_for_if(child.children)
+
+    if(child.tag == "fun"):
+        code_gen_for_fun(child.children)
+
 ###code_generation for let
 def code_gen_for_let(children):
     global let_count
     let_count+=1 #increment every time a let statement is encountered
-    
-    #first child of let is an assignment always (to_be_confirmed)
-    if(children[0].tag == "asgn"):
-        code_gen_for_asgn(children[0].children)
-    
-    #second child of let can be a let, binary operator or a function application
-    if(children[1].tag == "let"):
-        code_gen_for_let(children[1].children)
-    elif(children[1].tag in opType):
-        code_gen_for_op(children[1].children, children[1].tag)
-    elif(children[1].tag == "app"):
-        code_gen_for_application(children[1].children)
-    elif(children[1].tag == "uadd" or children[1].tag == "usub"):
-        code_gen_for_uop(children[1].children, children[1].tag)
+    code_generation(children[0])
+    code_generation(children[1])
 
 ###code_generation for unary operators
 def code_gen_for_uop(children, type):
-    if(children[0].tag == "var"):
-        code_gen_for_var(children[0].var)
-    elif(children[0].tag == "basic"):
-        code_gen_for_basic_val(children[0].value)
+    code_generation(children[0])
     print(str(sd) + " " +type)
     print(str(sd) + " mkbasic")
 
@@ -56,18 +70,12 @@ def code_gen_for_asgn(children):
     if(children[0].tag == "var"):
         rho[children[0].var] = ("L",localVarCount)
         localVarCount += 1
-        if(children[1].tag == "basic"):
-            code_gen_for_basic_val(children[1].value)
-        elif(children[1].tag in opType):
-            code_gen_for_op(children[1].children, children[1].tag)
-        elif(children[1].tag == "if"): 
-            code_gen_for_if(children[1].children)
+        code_generation(children[1])
     
     if(children[0].tag == "fvar"):
         rho[children[0].var] = ("L",localVarCount)
         localVarCount+=1
-        if(children[1].tag == "fun"):
-            code_gen_for_fun(children[1].children)
+        code_generation(children[1])
             
 ###code_generation for basic value 
 def code_gen_for_basic_val(value, makebasic = True):
@@ -95,56 +103,23 @@ def code_gen_for_var(var_name, getbasic = True):
 ###code_generation for binary operators
 def code_gen_for_op(children, type): #The children of operators can be var arg or basic
     global sd
-    if(children[0].tag == "var" or children[0].tag == "arg"): 
-        code_gen_for_var(children[0].var)
-    elif(children[0].tag == "basic"):
-        code_gen_for_basic_val(children[0].value, False)
-    
-    if (children[1].tag == "var" or  children[1].tag == "arg"):
-        code_gen_for_var(children[1].var)
-    elif(children[1].tag == "basic"):
-        code_gen_for_basic_val(children[1].value, False)
-
+    code_generation(children[0], False, True)
+    code_generation(children[1], False, True)
     print(str(sd) + " " + type)
     sd-=1
     if (type in opType):
-        print(str(sd) + " mkbasic") #TODO: check if mkbasic comes here or when call to this function returns
-
-'''
-###code_generation for comparision operators 
-def code_gen_for_op2(children, type):
-    global sd
-    if(children[0].tag == "var" or children[0].tag == "arg"):
-        code_gen_for_var(children[0].var)
-    elif(children[0].tag == "basic"):
-        code_gen_for_basic_val(children[0].value, False)
-    
-    if (children[1].tag == "var" or  children[1].tag == "arg"):
-        code_gen_for_var(children[1].var)
-    elif(children[1].tag == "basic"):
-        code_gen_for_basic_val(children[1].value, False)
-
-    print(str(sd) + " " + type)
-    sd-=1
-'''
+        print(str(sd) + " mkbasic") 
         
 ###code_generation for if
 def code_gen_for_if(children): 
     global jumpId
-    if(children[0].tag == "basic"): #the condition can be a basic type or a op2 type
-        code_gen_for_basic_val(children[0].value, False)
-    elif(children[0].tag in op2):
-        code_gen_for_op(children[0].children, children[0].tag)
-
+    code_generation(children[0], False, True)
     elseJumpId = jumpId
     print(str(sd) + " jumpz " + chr(elseJumpId))
     jumpId+= 1
     
     #then part of if can be basic, var or arg type
-    if(children[1].tag == "basic"): 
-        code_gen_for_basic_val(children[1].value)
-    elif(children[1].tag == "var" or children[1].tag == "arg"):
-        code_gen_for_var(children[1].var, False)
+    code_generation(children[1], True, False)
     
     postElseJumpId = jumpId
     print(str(sd) + " jump " + chr(postElseJumpId))
@@ -152,10 +127,7 @@ def code_gen_for_if(children):
     jumpId+= 1
 
     #else part of if can be either basic or application type
-    if(children[2].tag == "basic"):
-        code_gen_for_basic_val(children[2].value)
-    elif (children[2].tag == "app"):
-        code_gen_for_application(children[2].children)
+    code_generation(children[2])
     print(chr(postElseJumpId) + ":")
     
 ###code_generation for function
@@ -197,10 +169,7 @@ def code_gen_for_fun(children):
             print(chr(localFunNameLabel) + ":") #start of the function definition code generation
             print (str(sd) + " targ " + str(len(funArgVars)))
             
-            if (funArg.tag in opType):  #the last child of a function can be an operator or an if 
-                code_gen_for_op(funArg.children, funArg.tag)
-            elif (funArg.tag == "if"): 
-                code_gen_for_if(funArg.children)
+            code_generation(funArg)
             
             print (str(sd) + " return " + str(len(funArgVars))) #end of the function definition code generation
             
@@ -228,12 +197,7 @@ def code_gen_for_application(children):
     print(str(sd) + " mark " + chr(localMarkVar))
     sd=sd+3 #three org cells loaded
     for i in range((len(children)-1),-1, -1): #the children are read in reverse order and are either basic, binary operator or a fvar
-        if(children[i].tag == "basic"):
-            code_gen_for_basic_val(children[i].value)
-        elif(children[i].tag in opType):
-            code_gen_for_op(children[i].children,children[i].tag)
-        elif(children[i].tag == "fvar"):
-            code_gen_for_var(children[i].var,False)
+        code_generation(children[i], True, False)
     print(str(sd) + " apply")
     print(chr(localMarkVar) + ":")
     sd = preAppSD + 1 
@@ -244,12 +208,10 @@ def code_gen_for_rec(children):
     n = allocateLocalVars(children) #find no of local variables to be allocated
     print(str(sd) + " alloc " + str(n))
     sd+=n
-    if(children[0].tag == "asgn"):  #first child of let_rec is an assignment
-        code_gen_for_asgn(children[0].children)
+    code_generation(children[0])
     print(str(sd) + " rewrite " + str(n))
     sd-=1
-    if(children[1].tag == "app"):   #second child of let_rec is an application
-        code_gen_for_application(children[1].children)
+    code_generation(children[1])
     print(str(sd) + " slide " + str(n))
 
 #find the value of n for rec definitions
@@ -264,4 +226,36 @@ def allocateLocalVars(children):
             allocateLocalVars(i.children)
     return localAssignmentCount
 
-            
+#Old code
+#code_gen_for_op
+'''if(children[0].tag == "var" or children[0].tag == "arg"): 
+        code_gen_for_var(children[0].var)
+    elif(children[0].tag == "basic"):
+        code_gen_for_basic_val(children[0].value, False)
+    
+    if (children[1].tag == "var" or  children[1].tag == "arg"):
+        code_gen_for_var(children[1].var)
+    elif(children[1].tag == "basic"):
+        code_gen_for_basic_val(children[1].value, False)'''
+
+#code_gen_for_if
+'''if(children[0].tag == "basic"): #the condition can be a basic type or a op2 type
+        code_gen_for_basic_val(children[0].value, False)
+    elif(children[0].tag in op2):
+        code_gen_for_op(children[0].children, children[0].tag)'''
+'''if(children[1].tag == "basic"): 
+        code_gen_for_basic_val(children[1].value)
+    elif(children[1].tag == "var" or children[1].tag == "arg"):
+        code_gen_for_var(children[1].var, False)'''
+'''if(children[2].tag == "basic"):
+        code_gen_for_basic_val(children[2].value)
+    elif (children[2].tag == "app"):
+        code_gen_for_application(children[2].children)'''
+
+#code_gen_for_function_application
+'''if(children[i].tag == "basic"):
+            code_gen_for_basic_val(children[i].value)
+        elif(children[i].tag in opType):
+            code_gen_for_op(children[i].children,children[i].tag)
+        elif(children[i].tag == "fvar"):
+            code_gen_for_var(children[i].var,False)'''
