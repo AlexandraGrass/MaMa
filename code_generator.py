@@ -74,7 +74,7 @@ def code_gen_for_basic_val(value, makebasic = True):
     global sd
     print(str(sd) + " loadc "+ str(value))
     sd+=1
-    if (makebasic == True): #when the value is not used immediatly we make basic
+    if (makebasic == True): #codeV
         print(str(sd) +  " mkbasic")
 
 ###code_generation for var
@@ -89,7 +89,7 @@ def code_gen_for_var(var_name, getbasic = True):
     elif varType == "G":
         print(str(sd) + " pushglob " + str(value))
     sd+=1
-    if (getbasic):  #if the value is used now
+    if (getbasic):  #codeV
         print(str(sd) + " getbasic")
 
 ###code_generation for binary operators
@@ -98,12 +98,12 @@ def code_gen_for_op(children, type): #The children of operators can be var arg o
     if(children[0].tag == "var" or children[0].tag == "arg"): 
         code_gen_for_var(children[0].var)
     elif(children[0].tag == "basic"):
-        code_gen_for_basic_val(children[0].value, type in opType)
+        code_gen_for_basic_val(children[0].value, False)
     
     if (children[1].tag == "var" or  children[1].tag == "arg"):
         code_gen_for_var(children[1].var)
     elif(children[1].tag == "basic"):
-        code_gen_for_basic_val(children[1].value, type in opType)
+        code_gen_for_basic_val(children[1].value, False)
 
     print(str(sd) + " " + type)
     sd-=1
@@ -132,29 +132,31 @@ def code_gen_for_op2(children, type):
 def code_gen_for_if(children): 
     global jumpId
     if(children[0].tag == "basic"): #the condition can be a basic type or a op2 type
-        code_gen_for_basic_val(children[0].value)
+        code_gen_for_basic_val(children[0].value, False)
     elif(children[0].tag in op2):
         code_gen_for_op(children[0].children, children[0].tag)
 
-    print(str(sd) + " jumpz " + chr(jumpId))
+    elseJumpId = jumpId
+    print(str(sd) + " jumpz " + chr(elseJumpId))
     jumpId+= 1
     
     #then part of if can be basic, var or arg type
     if(children[1].tag == "basic"): 
-        code_gen_for_basic_val(children[1].value, False)
+        code_gen_for_basic_val(children[1].value)
     elif(children[1].tag == "var" or children[1].tag == "arg"):
         code_gen_for_var(children[1].var, False)
     
-    print(str(sd) + " jump " + chr(jumpId))
-    print(chr(jumpId - 1) + ":")
+    postElseJumpId = jumpId
+    print(str(sd) + " jump " + chr(postElseJumpId))
+    print(chr(elseJumpId) + ":")
     jumpId+= 1
 
     #else part of if can be either basic or application type
     if(children[2].tag == "basic"):
-        code_gen_for_basic_val(children[2].value, False)
+        code_gen_for_basic_val(children[2].value)
     elif (children[2].tag == "app"):
         code_gen_for_application(children[2].children)
-    print(chr(jumpId - 1) + ":")
+    print(chr(postElseJumpId) + ":")
     
 ###code_generation for function
 def code_gen_for_fun(children):
@@ -219,9 +221,10 @@ def getVarsUsed(children):
 
 ###code generation for function application
 def code_gen_for_application(children):
-    global sd
+    global sd, jumpId
     preAppSD = sd
     localMarkVar = jumpId #label for the jump after the function application
+    jumpId+=1
     print(str(sd) + " mark " + chr(localMarkVar))
     sd=sd+3 #three org cells loaded
     for i in range((len(children)-1),-1, -1): #the children are read in reverse order and are either basic, binary operator or a fvar

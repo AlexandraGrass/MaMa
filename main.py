@@ -66,7 +66,7 @@ if __name__ == '__main__':
     #parse_syntaxTree(result)
     #result = parse_tree("let a = 17 in let f = fun b -> a + b in f 42") # 140
     #parse_syntaxTree(result)
-    #result = parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1")
+    #result = parse_tree("let rec f = fun x y -> if y <= 1 then 5 else f ( x * y ) ( y - 1 ) in f 1")
     #parse_syntaxTree(result)
     #result = parse_tree("let x3 = 4 in     +     x3    ")
     #parse_syntaxTree(result)
