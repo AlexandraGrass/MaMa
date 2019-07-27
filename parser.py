@@ -29,6 +29,42 @@ def mk_rec(x, depth, dictio):
 
     return Other("rec", children, depth)
 
+def parse_let(expr):
+
+    expr = expr.split()
+    if (len(expr) == 0 or expr[0] != "let"):
+        return None
+
+    counter = 0
+    ind = -1
+
+    for i in range(len(expr)):
+        if (expr[i] == "let"):
+            counter += 1
+        elif (expr[i] == "in"):
+            counter -= 1
+
+            if(counter == 0):
+                ind = i
+                break
+
+    if (ind == -1):
+        return None
+
+    tmp1 = expr[1:ind]
+    e0 = expr[ind+1:]
+
+    prs = parse("{x1} = {e1}", " ".join(tmp1))
+    if(prs is None):
+        return None
+    
+    x = dict()
+    x['x1'] = prs['x1']
+    x['e1'] = prs['e1']
+    x['e0'] = " ".join(e0)
+
+    return x
+
 def mk_let(x, depth, dictio):
     tag = "fvar" if x['e1'].split(' ', 1)[0] == "fun" else "var"
 
@@ -136,7 +172,7 @@ def parse_tree(expr, depth=0, dictio={}):
         return mk_rec(x, depth, dictio)
 
     # let x1 = e1 in e0
-    x = parse("let {x1} = {e1} in {e0}", expr)
+    x = parse_let(expr)
     if(x != None):
         return mk_let(x, depth, dictio)
 
@@ -180,16 +216,6 @@ def parse_tree(expr, depth=0, dictio={}):
     if(x != None):
         return mk_op2(x, depth, dictio, "eq")
 
-    # e1 * e2
-    x = parse("{e1}*{e2}", expr)
-    if(x != None):
-        return mk_op2(x, depth, dictio, "mul")
-
-    # e1 / e2
-    x = parse("{e1}/{e2}", expr)
-    if(x != None):
-        return mk_op2(x, depth, dictio, "div")
-
     # e1 + e2
     x = parse("{e1}+{e2}", expr)
     if(x != None):
@@ -199,6 +225,16 @@ def parse_tree(expr, depth=0, dictio={}):
     x = parse("{e1}-{e2}", expr)
     if(x != None):
         return mk_op2(x, depth, dictio, "sub")
+
+    # e1 * e2
+    x = parse("{e1}*{e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "mul")
+
+    # e1 / e2
+    x = parse("{e1}/{e2}", expr)
+    if(x != None):
+        return mk_op2(x, depth, dictio, "div")
 
     # +e
     x = parse("+{e}", expr)
