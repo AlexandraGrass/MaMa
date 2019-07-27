@@ -50,6 +50,9 @@ def code_generation(child, basic = True, var=True):
     if(child.tag == "fun"):
         code_gen_for_fun(child.children)
 
+    if(child.tag in op2):
+        code_gen_for_op(child.children, child.tag)
+
 ###code_generation for let
 def code_gen_for_let(children):
     global let_count
