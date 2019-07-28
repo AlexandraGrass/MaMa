@@ -3,8 +3,91 @@ from parse import *
 import numpy as np
 import re
 
+def parse_brack(expr):
+    if(parse("({e})", expr) is None):
+        return None
+
+    expr = expr[1:-1]
+    expr = expr.split()
+
+    counter = 1
+
+    for word in expr:
+        if word[0] == "(":
+            counter += 1
+        if word[-1] == ")":
+            counter -= 1
+
+        if not counter:
+            return None
+
+    x = dict()
+    x['e'] = " ".join(expr)
+
+    return x
+
+def parse_let_rec(expr):
+
+    expr = expr.split()
+    if (len(expr) < 2 or expr[0] != "let" or expr[1] != "rec"):
+        return None
+
+    expr = expr[2:]
+    counter = 1
+    ind = -1
+
+    for i in range(len(expr)):
+        if (expr[i] == "let"):
+            counter += 1
+        elif (expr[i] == "in"):
+            counter -= 1
+
+            if(counter == 0):
+                ind = i
+                break
+
+    if (ind == -1):
+        return None
+    
+    x = dict()
+    x['defs'] = " ".join(expr[:ind])
+    x['e0'] = " ".join(expr[ind+1:])
+
+    return x
+
+def parse_and(defs):
+    defs = defs.split()
+
+    collect = []
+    last = 0
+
+    counter = 0
+    for i in range(len(defs)):
+
+        if(not counter and defs[i] == "and"):
+            collect.append(defs[last:i])
+            last = i+1
+            continue
+
+        if(defs[i] == "let"):
+            counter += 1
+            continue
+
+        if(defs[i] == "in"):
+            counter -= 1
+            continue
+
+    collect.append(defs[last:])
+
+    defs = []
+
+    for part in collect:
+        defs.append(" ".join(part))
+
+    return defs
+
 def mk_rec(x, depth, dictio):
-    defs = x['defs'].split('and')
+    defs = parse_and(x['defs'])
 
     new_dict = dictio.copy()
 
@@ -162,12 +245,12 @@ def parse_tree(expr, depth=0, dictio={}):
     expr = re.sub(' +', ' ',expr).strip()
 
     # (e)
-    x = parse("({e})", expr)
+    x = parse_brack(expr)
     if(x != None):
         return parse_tree(x['e'], depth, dictio)
 
     # let rec x1 = e1 and ... and xn = en in e0
-    x = parse("let rec {defs} in {e0}", expr)
+    x = parse_let_rec(expr)
     if(x != None):
         return mk_rec(x, depth, dictio)
 
