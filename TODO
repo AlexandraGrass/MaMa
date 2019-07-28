@@ -1,10 +1,10 @@
 General
-    Read from file!
+    > Read from file!
     > Rho for vars & funs
     several statements
     > args really just in dictio in function body?
-    parser doing proper separation? -> nope
-    change imports in main
+    > parser doing proper separation? -> nope
+    > change imports in main
 
 b 
     > basic (BasicValue)
@@ -30,7 +30,7 @@ x
 ( e' e0 ... ek−1 )
     > app
     > fun has to be known
-    > split e0 to ek-1 correctly?
+    split e0 to ek-1 correctly?
     convert "39 + 3" to "39+3"
 
 ( fun x0 ... xk−1 -> e )
