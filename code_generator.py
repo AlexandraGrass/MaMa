@@ -154,7 +154,6 @@ def code_gen_for_fun(children):
         else:               #the actual execution of the function
             varsUsed = getVarsUsed(children)   #all variables used inside the function definition
             freeVars = list(set(varsUsed) - set(funArgVars) - set(varsCreatedInsideFunction))    #variables that are not formal parameters
-            freeVars = ['c']
             varsUsedInFun = []  #reset the global variables
 
             for var in freeVars:    #first generate code for free-vars

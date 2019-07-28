@@ -19,7 +19,7 @@ args = parser.parse_args()
 # usage: main.py [-h] [-i INPUT] [-o OUTPUT]
 # example: python3 main.py -i input/slide_102.ml -o output/slide_102.txt
 
-with open(args.input) as i_f, open(args.output, 'w') as o_f:
+with open(args.input) as i_f, open(args.output, 'w+') as o_f:
 
     # read input and remove whitespace
     expr = i_f.read()

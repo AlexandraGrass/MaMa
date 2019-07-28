@@ -1,0 +1,42 @@
+Output:
+0 alloc 1
+1 pushloc 0
+2 mkvec 1
+2 mkfunval A
+2 jump B
+A:
+0 targ 2
+0 pushloc 1
+1 getbasic
+1 loadc 1
+2 le
+1 jumpz C
+1 pushloc 1
+2 jump D
+C:
+2 mark E
+5 pushloc 6
+6 getbasic
+6 loadc 1
+7 sub
+6 mkbasic
+6 pushloc 6
+7 getbasic
+7 pushloc 8
+8 getbasic
+8 mul
+7 mkbasic
+7 pushglob 0
+8 apply
+E:
+D:
+3 return 2
+B:
+2 rewrite 1
+1 mark F
+4 loadc 1
+5 mkbasic
+5 pushloc 4
+6 apply
+F:
+2 slide 1
