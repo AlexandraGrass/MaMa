@@ -122,9 +122,10 @@ def code_gen_for_op(children, type): #The children of operators can be var arg o
         
 ###code_generation for if
 def code_gen_for_if(children): 
-    global jumpId, generatedCode
+    global jumpId, generatedCode, sd
     code_generation(children[0], False, True)
     elseJumpId = jumpId
+    elseSD = sd
     generatedCode = generatedCode + '\n' + str(sd) + " jumpz " + chr(elseJumpId)
     jumpId+= 1
     
@@ -132,13 +133,16 @@ def code_gen_for_if(children):
     code_generation(children[1], True, False)
     
     postElseJumpId = jumpId
+    postElseSD = sd
     generatedCode = generatedCode + '\n' + str(sd) + " jump " + chr(postElseJumpId)
     generatedCode = generatedCode + '\n' + chr(elseJumpId) + ":"
+    sd = elseSD
     jumpId+= 1
 
     #else part of if can be either basic or application type
     code_generation(children[2])
     generatedCode = generatedCode + '\n' + chr(postElseJumpId) + ":"
+    sd = postElseSD
     
 ###code_generation for function
 def code_gen_for_fun(children):
