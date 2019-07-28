@@ -10,16 +10,20 @@ otherType = ["add", "sub", "mul", "div", "if", "asgn", "let", "fun", "if","app"]
 opType = ["add", "sub", "mul", "div"] #binary operators
 op2 = ["le", "lt", "ge", "gt", "eq"] #Comparision operators
 localAssignmentCount = 0
+generatedCode = "Output:"
 
 ###parsing of the code called from main
 def parse_syntaxTree(tree): #Assume the program starts with only let, if and let_rec
+    global generatedCode
     if(tree.tag == "if"):
         code_gen_for_if(tree.children)
     elif(tree.tag == "let"):
         code_gen_for_let(tree.children)
-        print(str(sd) + " slide " + str(let_count))
+        generatedCode = generatedCode + '\n' + str(sd) + " slide " + str(let_count)
     elif(tree.tag == "rec"):
         code_gen_for_rec(tree.children)
+
+    return generatedCode
 
 ###code_generation generic call
 def code_generation(child, basic = True, var=True):
@@ -63,8 +67,8 @@ def code_gen_for_let(children):
 ###code_generation for unary operators
 def code_gen_for_uop(children, type):
     code_generation(children[0])
-    print(str(sd) + " " +type)
-    print(str(sd) + " mkbasic")
+    generatedCode = generatedCode + '\n' + str(sd) + " " + type
+    generatedCode = generatedCode + '\n' + str(sd) + " mkbasic"
 
 ###code_gen for assignment  
 def code_gen_for_asgn(children):
@@ -82,60 +86,60 @@ def code_gen_for_asgn(children):
             
 ###code_generation for basic value 
 def code_gen_for_basic_val(value, makebasic = True):
-    global sd
-    print(str(sd) + " loadc "+ str(value))
+    global sd, generatedCode
+    generatedCode = generatedCode + '\n' + str(sd) + " loadc "+ str(value)
     sd+=1
     if (makebasic == True): #codeV
-        print(str(sd) +  " mkbasic")
+        generatedCode = generatedCode + '\n' + str(sd) +  " mkbasic"
 
 ###code_generation for var
 def code_gen_for_var(var_name, getbasic = True):
-    global rho, sd
+    global rho, sd, generatedCode
     varType = rho[var_name][0]
     value = rho[var_name][1]
     #check if the variable is local or global
     if varType == "L":  
         value = sd - value
-        print(str(sd) + " pushloc " + str(value))
+        generatedCode = generatedCode + '\n' + str(sd) + " pushloc " + str(value)
     elif varType == "G":
-        print(str(sd) + " pushglob " + str(value))
+        generatedCode = generatedCode + '\n' + str(sd) + " pushglob " + str(value)
     sd+=1
     if (getbasic):  #codeV
-        print(str(sd) + " getbasic")
+        generatedCode = generatedCode + '\n' + str(sd) + " getbasic"
 
 ###code_generation for binary operators
 def code_gen_for_op(children, type): #The children of operators can be var arg or basic
-    global sd
+    global sd, generatedCode
     code_generation(children[0], False, True)
     code_generation(children[1], False, True)
-    print(str(sd) + " " + type)
+    generatedCode = generatedCode + '\n' + str(sd) + " " + type
     sd-=1
     if (type in opType):
-        print(str(sd) + " mkbasic") 
+        generatedCode = generatedCode + '\n' + str(sd) + " mkbasic"
         
 ###code_generation for if
 def code_gen_for_if(children): 
-    global jumpId
+    global jumpId, generatedCode
     code_generation(children[0], False, True)
     elseJumpId = jumpId
-    print(str(sd) + " jumpz " + chr(elseJumpId))
+    generatedCode = generatedCode + '\n' + str(sd) + " jumpz " + chr(elseJumpId)
     jumpId+= 1
     
     #then part of if can be basic, var or arg type
     code_generation(children[1], True, False)
     
     postElseJumpId = jumpId
-    print(str(sd) + " jump " + chr(postElseJumpId))
-    print(chr(elseJumpId) + ":")
+    generatedCode = generatedCode + '\n' + str(sd) + " jump " + chr(postElseJumpId)
+    generatedCode = generatedCode + '\n' + chr(elseJumpId) + ":"
     jumpId+= 1
 
     #else part of if can be either basic or application type
     code_generation(children[2])
-    print(chr(postElseJumpId) + ":")
+    generatedCode = generatedCode + '\n' + chr(postElseJumpId) + ":"
     
 ###code_generation for function
 def code_gen_for_fun(children):
-    global sd, rho, jumpId
+    global sd, rho, jumpId, generatedCode
     funArgVars = [] #the formal parameters
     localFunNameLabel = jumpId #label for the function name to be created
     jumpId += 1
@@ -151,9 +155,9 @@ def code_gen_for_fun(children):
             
             for var in freeVars:    #first generate code for free-vars
                 code_gen_for_var(var, False)
-            print(str(sd) + " mkvec " + str(len(freeVars)))
-            print(str(sd) + " mkfunval " + chr(localFunNameLabel))
-            print(str(sd) + " jump " + chr(localFunJumpLabel))
+            generatedCode = generatedCode + '\n' + str(sd) + " mkvec " + str(len(freeVars))
+            generatedCode = generatedCode + '\n' + str(sd) + " mkfunval " + chr(localFunNameLabel)
+            generatedCode = generatedCode + '\n' + str(sd) + " jump " + chr(localFunJumpLabel)
             
             oldSD = sd #new stack distance and address space in the function definiton
             sd = 0
@@ -169,16 +173,16 @@ def code_gen_for_fun(children):
                 rho[var] = ("G",globalFunVarCount)
                 globalFunVarCount+=1
 
-            print(chr(localFunNameLabel) + ":") #start of the function definition code generation
-            print (str(sd) + " targ " + str(len(funArgVars)))
+            generatedCode = generatedCode + '\n' + chr(localFunNameLabel) + ":" #start of the function definition code generation
+            generatedCode = generatedCode + '\n' + str(sd) + " targ " + str(len(funArgVars))
             
             code_generation(funArg)
             
-            print (str(sd) + " return " + str(len(funArgVars))) #end of the function definition code generation
+            generatedCode = generatedCode + '\n' + str(sd) + " return " + str(len(funArgVars)) #end of the function definition code generation
             
             sd=oldSD    #reset the sd and the address space
             rho = oldRHO
-            print(chr(localFunJumpLabel) + ":")
+            generatedCode = generatedCode + '\n' + chr(localFunJumpLabel) + ":"
 
 #Return variables used inside a function inorder to determine the free variables
 def getVarsUsed(children):
@@ -193,29 +197,29 @@ def getVarsUsed(children):
 
 ###code generation for function application
 def code_gen_for_application(children):
-    global sd, jumpId
+    global sd, jumpId, generatedCode
     preAppSD = sd
     localMarkVar = jumpId #label for the jump after the function application
     jumpId+=1
-    print(str(sd) + " mark " + chr(localMarkVar))
+    generatedCode = generatedCode + '\n' + str(sd) + " mark " + chr(localMarkVar)
     sd=sd+3 #three org cells loaded
     for i in range((len(children)-1),-1, -1): #the children are read in reverse order and are either basic, binary operator or a fvar
         code_generation(children[i], True, False)
-    print(str(sd) + " apply")
-    print(chr(localMarkVar) + ":")
+    generatedCode = generatedCode + '\n' + str(sd) + " apply"
+    generatedCode = generatedCode + '\n' + chr(localMarkVar) + ":"
     sd = preAppSD + 1 
 
 ###code generation for rec
 def code_gen_for_rec(children):
-    global sd
+    global sd, generatedCode
     n = allocateLocalVars(children) #find no of local variables to be allocated
-    print(str(sd) + " alloc " + str(n))
+    generatedCode = generatedCode + '\n' + str(sd) + " alloc " + str(n)
     sd+=n
     code_generation(children[0])
-    print(str(sd) + " rewrite " + str(n))
+    generatedCode = generatedCode + '\n' + str(sd) + " rewrite " + str(n)
     sd-=1
     code_generation(children[1])
-    print(str(sd) + " slide " + str(n))
+    generatedCode = generatedCode + '\n' + str(sd) + " slide " + str(n)
 
 #find the value of n for rec definitions
 def allocateLocalVars(children):

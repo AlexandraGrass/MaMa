@@ -1,5 +1,5 @@
 from parser import parse_tree
-from code_generator import *    # TODO just import necessary method
+from code_generator import parse_syntaxTree
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
@@ -17,8 +17,9 @@ parser.add_argument("-o", "--output", type=str, help="path to output file", defa
 args = parser.parse_args()
 
 # usage: main.py [-h] [-i INPUT] [-o OUTPUT]
+# example: python3 main.py -i input/slide_102.ml -o output/slide_102.txt
 
-with open(args.input) as i_f:
+with open(args.input) as i_f, open(args.output, 'w') as o_f:
 
     # read input and remove whitespace
     expr = i_f.read()
@@ -27,5 +28,6 @@ with open(args.input) as i_f:
     # parse syntax tree
     tree = parse_tree(expr)
 
-    # TODO generate code and print to file
-    print(tree)
+    # generate code and print to file
+    result = parse_syntaxTree(tree)
+    o_f.write(result)
