@@ -1,80 +1,31 @@
-from parser import *
-from code_generator import *
+from parser import parse_tree
+from code_generator import *    # TODO just import necessary method
 
-if __name__ == '__main__':
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-    
-    # default values
-    input_file = "input.txt"
-    output_file = "output.txt"
+# default values
+input_file = "input/test1.ml"
+output_file = "output/test1.txt"
 
-    # parse command line arguments
-    parser = ArgumentParser(
-        description="translate functional code to MaMa language",
-        formatter_class=ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument("-i", "--input", type=str, help="path to a file containing functional language", default=input_file)
-    parser.add_argument("-o", "--output", type=str, help="path to output file", default=output_file)
-    args = parser.parse_args()
+# parse command line arguments
+parser = ArgumentParser(
+    description="translate functional code to MaMa language",
+    formatter_class=ArgumentDefaultsHelpFormatter
+)
+parser.add_argument("-i", "--input", type=str, help="path to a file containing functional language", default=input_file)
+parser.add_argument("-o", "--output", type=str, help="path to output file", default=output_file)
+args = parser.parse_args()
 
-    # usage: main.py [-h] [-i INPUT] [-o OUTPUT]
-    #print(args.input)
-    #print(args.output)
+# usage: main.py [-h] [-i INPUT] [-o OUTPUT]
 
-    # own examples
-    '''
-    print(parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)"))
-    print()
-    print(parse_tree("if 1 then 3 else 4"))
-    print()
-    print(parse_tree("let x3 = 4 in     +     x3    "))
-    print()
-    print(parse_tree("((34))"))
-    print()
-    print(parse_tree("3 / 4"))
-    print()
-    print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1"))
-    print()
-    print(parse_tree("let y_x = 4 in y_x"))
-    print()
+with open(args.input) as i_f:
 
-    # from lecture slides
-    print(parse_tree("let rec fac = fun x -> if x <= 1 then 1 else x * fac (x-1) in fac 7")) # 102
-    print()
+    # read input and remove whitespace
+    expr = i_f.read()
+    expr = ' '.join(expr.split())
 
-    # TODO: for let f, first "in" is chosen (a in b)
-    # print(parse_tree("let c = 5 in let f = fun a -> let b = a * a in b + c in f c")) # 114
-    # print()
-    
-    print(parse_tree("let a = 19 in let b = a * a in a + b")) # 131
-    print()
+    # parse syntax tree
+    tree = parse_tree(expr)
 
-    print(parse_tree("let a = 17 in let f = fun b -> a + b in f 42")) # 140
-    print()
-
-    print(parse_tree("let rec f = fun x y -> if y <= 1 then x else f ( x * y ) ( y - 1 ) in f 1")) # 159
-    print()
-    '''
-
-    ##examples handled by code generation
-    #result = parse_tree("let a = 19 in let b = a * a in a + b") # 131
-    #parse_syntaxTree(result)
-    #result = parse_tree("if 1 then 3 else 4")
-    #parse_syntaxTree(result)
-    #result = parse_tree("let a = 17 in let f = fun b -> a + b in f (39 + 2)")
-    #parse_syntaxTree(result)
-    #result = parse_tree("let a = 17 in let f = fun b -> a + b in f 42") # 140
-    #parse_syntaxTree(result)
-    #result = parse_tree("let rec f = fun x y -> if y <= 1 then 5 else f ( x * y ) ( y - 1 ) in f 1")
-    #parse_syntaxTree(result)
-    #result = parse_tree("let x3 = 4 in     +     x3    ")
-    #parse_syntaxTree(result)
-    '''Needs Work:'''
-    #result = parse_tree("let f = fun x y -> let a = 5 in let b = x + 2*y in b + a*x in f 0 1")
-    #parse_syntaxTree(result)
-    #result = parse_tree("if y > x then x else 7 + y * x")
-    #parse_syntaxTree(result)
-
-    # Testing let rec & and parsing
-    # print(parse_tree("let rec x = fun a -> 1 and y = fun b -> let rec z0 = fun c -> c and z1 = fun d -> d in z1 1 and z = fun a -> a in ((x 2) + (y 2))"))
+    # TODO generate code and print to file
+    print(tree)

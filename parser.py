@@ -1,7 +1,6 @@
 from tree_nodes import *
 from parse import *
 import numpy as np
-import re
 
 def parse_brack(expr):
     if(parse("({e})", expr) is None):
@@ -214,6 +213,20 @@ def mk_if(x, depth, dictio):
 
     return Other("if", [e0, e1, e2], depth)
 
+def check_brack(expr):
+    count = 1
+
+    for char in expr:
+        if(char == '('):
+            count += 1
+        if(char == ')'):
+            count -= 1
+
+            if not count:
+                return False
+
+    return True
+
 def mk_op2(x, depth, dictio, tag):
     e1 = parse_tree(x['e1'], depth+1, dictio)
     e2 = parse_tree(x['e2'], depth+1, dictio)
@@ -242,7 +255,7 @@ def is_int(expr):
 def parse_tree(expr, depth=0, dictio={}):
 
     # remove unnecessary whitespace
-    expr = re.sub(' +', ' ',expr).strip()
+    expr = ' '.join(expr.split())
 
     # (e)
     x = parse_brack(expr)
@@ -276,47 +289,52 @@ def parse_tree(expr, depth=0, dictio={}):
 
     # e1 >= e2
     x = parse("{e1}>={e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "ge")
 
     # e1 > e2
     x = parse("{e1}>{e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "gt")
 
     # e1 <= e2
     x = parse("{e1}<={e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "le")
 
     # e1 < e2
     x = parse("{e1}<{e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "lt")
 
     # e1 == e2
     x = parse("{e1}=={e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "eq")
+
+    # e1 != e2
+    x = parse("{e1}!={e2}", expr)
+    if(x != None and check_brack(x['e2'])):
+        return mk_op2(x, depth, dictio, "neq")
 
     # e1 + e2
     x = parse("{e1}+{e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "add")
 
     # e1 - e2
     x = parse("{e1}-{e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "sub")
 
     # e1 * e2
     x = parse("{e1}*{e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "mul")
 
     # e1 / e2
     x = parse("{e1}/{e2}", expr)
-    if(x != None):
+    if(x != None and check_brack(x['e2'])):
         return mk_op2(x, depth, dictio, "div")
 
     # +e
