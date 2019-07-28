@@ -1,0 +1,16 @@
+Output:
+0 loadc 19
+1 mkbasic
+1 pushloc 0
+2 getbasic
+2 pushloc 1
+3 getbasic
+3 mul
+2 mkbasic
+2 pushloc 1
+3 getbasic
+3 pushloc 1
+4 getbasic
+4 add
+3 mkbasic
+3 slide 2
