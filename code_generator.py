@@ -6,6 +6,7 @@ let_count = 0 #Count lets to slide at the end
 rho = {} #Address space
 localVarCount = 1 #local variable count
 varsUsedInFun = [] #to find all variables used in the function def inorder to find the free variables
+varsCreatedInsideFunction = []
 otherType = ["add", "sub", "mul", "div", "if", "asgn", "let", "fun", "if","app"] #all tags for type 'Other'
 opType = ["add", "sub", "mul", "div"] #binary operators
 op2 = ["le", "lt", "ge", "gt", "eq"] #Comparision operators
@@ -75,13 +76,15 @@ def code_gen_for_asgn(children):
     global rho, localVarCount
     #first child of assignment can be a var or an fvar. If its a var the second child will be a basic value, an if or a binary operator. If its an fvar, the second child is a function
     if(children[0].tag == "var"):
-        rho[children[0].var] = ("L",localVarCount)
-        localVarCount += 1
+        if(not rho.__contains__(children[0].var)):
+            rho[children[0].var] = ("L",localVarCount)
+            localVarCount += 1
         code_generation(children[1])
     
     if(children[0].tag == "fvar"):
-        rho[children[0].var] = ("L",localVarCount)
-        localVarCount+=1
+        if(not rho.__contains__(children[0].var)):
+            rho[children[0].var] = ("L",localVarCount)
+            localVarCount+=1
         code_generation(children[1])
             
 ###code_generation for basic value 
@@ -139,7 +142,7 @@ def code_gen_for_if(children):
     
 ###code_generation for function
 def code_gen_for_fun(children):
-    global sd, rho, jumpId, generatedCode
+    global sd, rho, jumpId, generatedCode, varsCreatedInsideFunction
     funArgVars = [] #the formal parameters
     localFunNameLabel = jumpId #label for the function name to be created
     jumpId += 1
@@ -150,9 +153,10 @@ def code_gen_for_fun(children):
             funArgVars.append(funArg.var)
         else:               #the actual execution of the function
             varsUsed = getVarsUsed(children)   #all variables used inside the function definition
-            freeVars = list(set(varsUsed) - set(funArgVars))    #variables that are not formal parameters
-            varsUsedInFun = []  #reset the global variable
-            
+            freeVars = list(set(varsUsed) - set(funArgVars) - set(varsCreatedInsideFunction))    #variables that are not formal parameters
+            freeVars = ['c']
+            varsUsedInFun = []  #reset the global variables
+
             for var in freeVars:    #first generate code for free-vars
                 code_gen_for_var(var, False)
             generatedCode = generatedCode + '\n' + str(sd) + " mkvec " + str(len(freeVars))
@@ -164,15 +168,20 @@ def code_gen_for_fun(children):
             oldRHO = rho
             rho = {}
             formalParamCount = 0
+            localParamCount = 1
             globalFunVarCount = 0
             
             for var in funArgVars:  #define the address space of the local and formal parameters
                 rho[var] = ("L",formalParamCount)
                 formalParamCount-=1
+            for var in varsCreatedInsideFunction:
+                rho[var] = ("L", localParamCount)
+                localParamCount+=1
             for var in freeVars:
                 rho[var] = ("G",globalFunVarCount)
                 globalFunVarCount+=1
 
+            varsCreatedInsideFunction = []
             generatedCode = generatedCode + '\n' + chr(localFunNameLabel) + ":" #start of the function definition code generation
             generatedCode = generatedCode + '\n' + str(sd) + " targ " + str(len(funArgVars))
             
@@ -186,12 +195,14 @@ def code_gen_for_fun(children):
 
 #Return variables used inside a function inorder to determine the free variables
 def getVarsUsed(children):
-    global varsUsedInFun
+    global varsUsedInFun, varsCreatedInsideFunction
     for i in children:
         if (i.tag == "var" or i.tag == "fvar" or i.tag == "arg"):
             if(not i.var in varsUsedInFun):
                 varsUsedInFun.append(i.var)
-        elif (i.tag in otherType): 
+        elif (i.tag in otherType):
+            if (i.tag == "let" and i.children[0].tag == "asgn"):
+                varsCreatedInsideFunction.append(i.children[0].children[0].var)
             getVarsUsed(i.children)
     return varsUsedInFun
 
