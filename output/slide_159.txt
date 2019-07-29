@@ -40,3 +40,4 @@ B:
 6 apply
 F:
 2 slide 1
+1 halt

@@ -9,7 +9,7 @@ varsUsedInFun = [] #to find all variables used in the function def inorder to fi
 varsCreatedInsideFunction = []
 otherType = ["add", "sub", "mul", "div", "if", "asgn", "let", "fun", "if","app"] #all tags for type 'Other'
 opType = ["add", "sub", "mul", "div"] #binary operators
-op2 = ["le", "lt", "ge", "gt", "eq"] #Comparision operators
+op2 = ["le", "lt", "ge", "gt", "eq", "neq"] #Comparision operators
 localAssignmentCount = 0
 generatedCode = "Output:"
 
@@ -21,9 +21,12 @@ def parse_syntaxTree(tree): #Assume the program starts with only let, if and let
     elif(tree.tag == "let"):
         code_gen_for_let(tree.children)
         generatedCode = generatedCode + '\n' + str(sd) + " slide " + str(let_count)
+        generatedCode = generatedCode + '\n' + str(sd - let_count) + " halt"
     elif(tree.tag == "rec"):
         code_gen_for_rec(tree.children)
-
+    elif(tree.tag in opType): 
+        code_gen_for_op(tree.children, tree.tag)
+        generatedCode = generatedCode + '\n' + str(sd - let_count) + " halt"
     return generatedCode
 
 ###code_generation generic call
@@ -234,6 +237,7 @@ def code_gen_for_rec(children):
     sd-=1
     code_generation(children[1])
     generatedCode = generatedCode + '\n' + str(sd) + " slide " + str(n)
+    generatedCode = generatedCode + '\n' + str(sd - n) + " halt"
 
 #find the value of n for rec definitions
 def allocateLocalVars(children):
