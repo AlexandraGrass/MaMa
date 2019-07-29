@@ -4,8 +4,8 @@ from code_generator import parse_syntaxTree
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 # default values
-input_file = "input/test1.ml"
-output_file = "output/test1.txt"
+input_file = "input/slide_159.ml"
+output_file = "output/slide_159.txt"
 
 # parse command line arguments
 parser = ArgumentParser(

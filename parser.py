@@ -177,7 +177,7 @@ def mk_fun(x, depth, dictio):
 
     return Other("fun", children, depth)
 
-def split_expr(exprs):
+def split_expr(exprs):                      # TODO fix with own parsing approach
     x = parse("({e1}) {e2}", exprs)
     if(x != None):
         tmp = [x['e1']]
