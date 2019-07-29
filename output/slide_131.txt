@@ -14,3 +14,4 @@ Output:
 4 add
 3 mkbasic
 3 slide 2
+1 halt

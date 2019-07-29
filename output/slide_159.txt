@@ -14,23 +14,23 @@ A:
 1 pushloc 1
 2 jump D
 C:
-2 mark E
-5 pushloc 6
+1 mark E
+4 pushloc 5
+5 getbasic
+5 loadc 1
+6 sub
+5 mkbasic
+5 pushloc 5
 6 getbasic
-6 loadc 1
-7 sub
-6 mkbasic
-6 pushloc 6
+6 pushloc 7
 7 getbasic
-7 pushloc 8
-8 getbasic
-8 mul
-7 mkbasic
-7 pushglob 0
-8 apply
+7 mul
+6 mkbasic
+6 pushglob 0
+7 apply
 E:
 D:
-3 return 2
+2 return 2
 B:
 2 rewrite 1
 1 mark F
@@ -40,3 +40,4 @@ B:
 6 apply
 F:
 2 slide 1
+1 halt

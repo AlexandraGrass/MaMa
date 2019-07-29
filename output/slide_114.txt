@@ -27,3 +27,4 @@ B:
 7 apply
 C:
 3 slide 3
+0 halt
